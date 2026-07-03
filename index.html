@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ConcorsoAI — Preparati davvero all'orale del concorso</title>
+  <meta name="description" content="Carica il tuo bando e simula l'orale dei concorsi pubblici con un commissario AI. Domande dai tuoi materiali e feedback live." />
+  <meta name="theme-color" content="#F7FBFF" />
+
+  <!-- Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#F7FBFF',
+              100: '#EAF4FF',
+              200: '#D6E8FF',
+              300: '#A9CDF8',
+              400: '#5EA0E8',
+              500: '#2563EB',
+              600: '#0F4C81',
+              700: '#0B3A63',
+              800: '#0B2A4A',
+              900: '#071D33'
+            }
+          },
+          boxShadow: {
+            card: '0 24px 70px rgba(15,76,129,.12)',
+            cardHover: '0 30px 90px rgba(15,76,129,.18)',
+            glowBlue: '0 18px 45px rgba(37,99,235,.22)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #F7FBFF;
+      --text: #0B2A4A;
+      --muted: #4B6F8E;
+      --blue: #0F4C81;
+      --blue-2: #2563EB;
+      --line: #D6E8FF;
+      --soft: #EAF4FF;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% -8%, rgba(37,99,235,.13), transparent 34rem),
+        radial-gradient(circle at 90% 4%, rgba(94,160,232,.12), transparent 30rem),
+        linear-gradient(180deg, #F7FBFF 0%, #FFFFFF 32%, #F7FBFF 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(15,76,129,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15,76,129,.045) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle at 50% 18%, black 0%, transparent 72%);
+    }
+
+    .text-gradient {
+      color: #0F4C81;
+      background: linear-gradient(135deg, #0B2A4A 0%, #0F4C81 42%, #2563EB 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-eyebrow {
+      letter-spacing: .28em;
+      color: #0F4C81;
+      font-weight: 900;
+      font-size: .75rem;
+      text-transform: uppercase;
+    }
+
+    .glass-card {
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(214,232,255,.92);
+      box-shadow: 0 24px 70px rgba(15,76,129,.10);
+      backdrop-filter: blur(18px);
+    }
+
+    .card-hover {
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
+    }
+
+    .card-hover:hover {
+      transform: translateY(-4px);
+      border-color: #A9CDF8;
+      box-shadow: 0 30px 90px rgba(15,76,129,.16);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0F4C81 0%, #2563EB 100%);
+      color: #fff;
+      box-shadow: 0 16px 38px rgba(37,99,235,.22);
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1.02);
+      filter: saturate(1.06);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.08), 0 20px 54px rgba(37,99,235,.30);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: #0F4C81;
+      border: 1px solid #D6E8FF;
+      box-shadow: 0 12px 34px rgba(15,76,129,.07);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      border-color: #A9CDF8;
+      box-shadow: 0 16px 44px rgba(15,76,129,.11);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .72s cubic-bezier(.2,.8,.2,1), transform .72s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+    .floating { animation: floating 6s ease-in-out infinite; }
+    @keyframes floating {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .mic-pulse { animation: micPulse 1.7s ease-in-out infinite; }
+    @keyframes micPulse {
+      0% { box-shadow: 0 0 0 0 rgba(16,185,129,.38), 0 8px 24px rgba(16,185,129,.12); }
+      70% { box-shadow: 0 0 0 14px rgba(16,185,129,0), 0 8px 24px rgba(16,185,129,.12); }
+      100% { box-shadow: 0 0 0 0 rgba(16,185,129,0), 0 8px 24px rgba(16,185,129,.12); }
+    }
+
+    .wave span {
+      display: block;
+      width: 3px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.95);
+      animation: wave 1.15s cubic-bezier(.45,0,.55,1) infinite;
+      transform-origin: center;
+    }
+    .wave span:nth-child(2n) { animation-delay: .12s; animation-duration: .95s; }
+    .wave span:nth-child(3n) { animation-delay: .22s; animation-duration: 1.25s; }
+    .wave span:nth-child(4n) { animation-delay: .34s; animation-duration: 1.05s; }
+    @keyframes wave {
+      0%, 100% { height: 8px; }
+      50% { height: 26px; }
+    }
+
+    .step-number {
+      color: rgba(15, 76, 129, .13);
+      -webkit-text-stroke: 1.35px rgba(15, 76, 129, .48);
+      background: none;
+      opacity: 1;
+      text-shadow: 0 10px 24px rgba(15, 76, 129, .14);
+      line-height: 1;
+    }
+
+    .shine {
+      position: relative;
+      overflow: hidden;
+    }
+    .shine::after {
+      content: "";
+      position: absolute;
+      inset: -120% auto auto -40%;
+      width: 36%;
+      height: 280%;
+      transform: rotate(22deg);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.32), transparent);
+      animation: shine 5.5s ease-in-out infinite;
+    }
+    @keyframes shine {
+      0%, 45% { left: -42%; }
+      70%, 100% { left: 120%; }
+    }
+
+
+    .footer-link {
+      position: relative;
+      display: inline-block;
+      color: #0F4C81;
+      transition: color .2s ease;
+    }
+    .footer-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -3px;
+      width: 100%;
+      height: 1px;
+      background: #0F4C81;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .22s ease;
+    }
+    .footer-link:hover { color: #0B2A4A; }
+    .footer-link:hover::after { transform: scaleX(1); }
+
+
+    /* Premium polish pass: depth, FAQ, proof cards */
+    .soft-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(15,76,129,.18), transparent);
+    }
+
+    .premium-panel {
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(247,251,255,.92));
+      border: 1px solid #D6E8FF;
+      box-shadow: 0 30px 90px rgba(15,76,129,.12);
+    }
+
+    .faq-item {
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
+    }
+    .faq-item:hover {
+      transform: translateY(-2px);
+      border-color: #A9CDF8;
+      box-shadow: 0 18px 44px rgba(15,76,129,.10);
+    }
+    .faq-icon {
+      display: inline-flex;
+      width: 1.65rem;
+      height: 1.65rem;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #EAF4FF;
+      color: #0F4C81;
+      font-weight: 900;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .benefit-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.26);
+      padding: .55rem .85rem;
+      color: rgba(255,255,255,.92);
+      font-size: .78rem;
+      font-weight: 800;
+    }
+
+    .check-circle {
+      display: inline-flex;
+      width: 1.25rem;
+      height: 1.25rem;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #DCFCE7;
+      color: #15803D;
+      font-size: .78rem;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+
+<body class="font-sans antialiased selection:bg-brand-200 selection:text-brand-900">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-brand-800 focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white">Salta al contenuto</a>
+
+  <!-- =========================================================
+       1. NAVBAR
+       ========================================================= -->
+  <header class="sticky top-0 z-50 border-b border-brand-200/80 bg-white/86 backdrop-blur-xl shadow-sm shadow-brand-200/40">
+    <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Navigazione principale">
+      <a href="#" class="rounded-xl text-xl font-extrabold tracking-tight text-brand-900 outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white" aria-label="ConcorsoAI home">
+        Concorso<span class="text-gradient">AI</span>
+      </a>
+
+      <div class="hidden items-center gap-1 lg:flex">
+        <a href="#come-funziona" class="rounded-lg px-3 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 hover:text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Come funziona</a>
+        <a href="#prezzi" class="rounded-lg px-3 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 hover:text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Prezzi</a>
+        <a href="#faq" class="rounded-lg px-3 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 hover:text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">FAQ</a>
+      </div>
+
+      <div class="hidden items-center gap-3 lg:flex">
+        <a href="auth.html" class="rounded-xl border border-brand-200 bg-white px-4 py-2 text-sm font-bold text-brand-700 transition hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Accedi</a>
+        <a href="auth.html" class="btn-primary rounded-xl px-4 py-2 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white">Registrati</a>
+      </div>
+
+      <button id="menu-toggle" type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-brand-200 bg-white text-brand-800 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 lg:hidden" aria-label="Apri menu" aria-expanded="false" aria-controls="mobile-menu">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path class="menu-icon-open" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16" />
+          <path class="menu-icon-close hidden" stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden border-t border-brand-200 bg-white/96 px-4 py-4 lg:hidden">
+      <div class="mx-auto flex max-w-7xl flex-col gap-2">
+        <a href="#come-funziona" class="mobile-link rounded-xl px-3 py-3 text-sm font-bold text-brand-700 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Come funziona</a>
+        <a href="#prezzi" class="mobile-link rounded-xl px-3 py-3 text-sm font-bold text-brand-700 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Prezzi</a>
+        <a href="#faq" class="mobile-link rounded-xl px-3 py-3 text-sm font-bold text-brand-700 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">FAQ</a>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <a href="auth.html" class="mobile-link rounded-xl border border-brand-200 bg-white px-4 py-3 text-center text-sm font-bold text-brand-700 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Accedi</a>
+          <a href="auth.html" class="mobile-link btn-primary rounded-xl px-4 py-3 text-center text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Registrati</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- =========================================================
+         2. HERO
+         ========================================================= -->
+    <section class="relative overflow-hidden pb-20 pt-14 sm:pb-28 sm:pt-20 lg:pb-32 lg:pt-24">
+      <div class="pointer-events-none absolute right-[-8rem] top-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(circle,rgba(224,231,255,.72)_0%,rgba(219,234,254,.42)_38%,transparent_72%)]"></div>
+      <div class="pointer-events-none absolute left-1/2 top-0 -z-10 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-brand-300/24 blur-3xl"></div>
+      <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8">
+        <div class="reveal">
+          <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/82 px-3 py-1.5 text-xs font-extrabold text-brand-700 shadow-sm shadow-brand-200/50 backdrop-blur">
+            <span aria-hidden="true">🇮🇹</span>
+            <span>Fatto in Italia · Setup in 2 minuti</span>
+          </div>
+
+          <h1 class="max-w-3xl text-4xl font-black leading-[1.04] tracking-[-0.045em] text-brand-900 sm:text-5xl md:text-6xl lg:text-7xl">
+            L'unica AI che ti prepara <span class="text-gradient">davvero</span> all'orale del concorso.
+          </h1>
+
+          <p class="mt-6 max-w-2xl text-base leading-8 text-brand-700 sm:text-lg lg:text-xl">
+            Carica il tuo bando. Il commissario AI ti interroga a voce, con domande reali estratte dai tuoi materiali. Ricevi feedback su contenuto, chiarezza ed esposizione. Senza giudizi, senza ansia da prestazione.
+          </p>
+
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a href="#prezzi" class="btn-primary shine inline-flex items-center justify-center rounded-2xl px-6 py-4 text-base font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white">
+              Inizia ora <span aria-hidden="true" class="ml-1 text-white">→</span>
+            </a>
+            <a href="#demo" class="btn-secondary inline-flex items-center justify-center rounded-2xl px-6 py-4 text-base font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+              <svg class="mr-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6.3 3.76A1 1 0 0 0 5 4.71v10.58a1 1 0 0 0 1.5.86l9.06-5.29a1 1 0 0 0 0-1.72L6.5 3.85a1 1 0 0 0-.2-.09Z" /></svg>
+              Guarda demo
+            </a>
+          </div>
+
+          <p class="mt-5 text-sm leading-6 text-brand-600">
+            ✓ Nessuna carta richiesta&nbsp;&nbsp;&nbsp;✓ Disdici quando vuoi&nbsp;&nbsp;&nbsp;✓ Setup in 2 minuti
+          </p>
+        </div>
+
+        <!-- Hero mockup: chat con commissario AI -->
+        <div class="reveal lg:justify-self-end" style="transition-delay: 120ms;">
+          <div class="floating relative mx-auto w-full max-w-[34rem]">
+            <div class="absolute -inset-5 -z-10 rounded-[2.25rem] bg-brand-300/28 blur-2xl"></div>
+            <div class="glass-card rounded-[2rem] p-3">
+              <div class="overflow-hidden rounded-[1.55rem] border border-brand-200 bg-white">
+                <div class="flex items-center gap-3 border-b border-brand-200 bg-brand-50 px-4 py-3 sm:px-5">
+                  <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-black text-white shadow-glowBlue">CA</div>
+                  <div class="min-w-0">
+                    <p class="text-sm font-black text-brand-900">Commissario AI</p>
+                    <p class="mt-0.5 truncate text-[11px] font-semibold text-slate-500">Sessione 03 · Diritto Amministrativo</p>
+                    <div class="mt-1 flex items-center gap-1.5 text-xs font-semibold text-brand-600">
+                      <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                      <span>Simulazione in corso · 12:34</span>
+                    </div>
+                  </div>
+                  <div class="mic-pulse ml-auto flex h-10 w-10 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600" aria-label="Microfono attivo">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm7-3a7 7 0 0 1-14 0m7 7v3m-4 0h8" /></svg>
+                  </div>
+                </div>
+
+                <div class="space-y-3.5 px-4 py-4 sm:px-5">
+                  <div class="grid grid-cols-3 gap-2 text-center text-[11px] font-black text-brand-700">
+                    <div class="rounded-xl border border-brand-200 bg-white px-2 py-2">Domanda 4/12</div>
+                    <div class="rounded-xl border border-brand-200 bg-white px-2 py-2">Timer 12:34</div>
+                    <div class="rounded-xl border border-brand-200 bg-white px-2 py-2">Voce attiva</div>
+                  </div>
+                  <div class="max-w-[88%] rounded-2xl rounded-tl-sm border border-brand-200 bg-brand-50 p-4 text-sm leading-6 text-brand-900 shadow-sm">
+                    Buongiorno. Cominciamo con una domanda di diritto amministrativo: ci parli del principio di trasparenza nella Pubblica Amministrazione.
+                  </div>
+
+                  <div class="ml-auto max-w-[88%] rounded-2xl rounded-tr-sm bg-brand-600 p-4 text-sm leading-6 text-white shadow-glowBlue">
+                    <div class="flex items-start gap-2">
+                      <svg class="mt-0.5 h-4 w-4 shrink-0 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm7-3a7 7 0 0 1-14 0" /></svg>
+                      <span class="text-white">Il principio di trasparenza è sancito dall'art. 1 della legge 241/90...</span>
+                    </div>
+                    <div class="wave mt-3 flex h-8 items-center gap-1.5" aria-hidden="true">
+                      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                    </div>
+                  </div>
+
+                  <div class="max-w-[88%] rounded-2xl rounded-tl-sm border border-brand-200 bg-brand-50 p-4 text-sm leading-6 text-brand-900 shadow-sm">
+                    Bene. Mi può fare un esempio pratico di come si applica nell'accesso agli atti?
+                  </div>
+
+                  <div class="rounded-2xl border border-brand-200 bg-white p-4 shadow-sm">
+                    <h3 class="text-sm font-black text-brand-900">📊 Feedback live</h3>
+                    <div class="mt-4 space-y-3">
+                      <div>
+                        <div class="mb-1.5 flex justify-between text-xs font-bold text-brand-700"><span>Chiarezza</span><span>8/10</span></div>
+                        <div class="h-2 rounded-full bg-brand-100"><div class="h-2 w-[80%] rounded-full bg-emerald-500"></div></div>
+                      </div>
+                      <div>
+                        <div class="mb-1.5 flex justify-between text-xs font-bold text-brand-700"><span>Struttura</span><span>7/10</span></div>
+                        <div class="h-2 rounded-full bg-brand-100"><div class="h-2 w-[70%] rounded-full bg-amber-400"></div></div>
+                      </div>
+                      <div>
+                        <div class="mb-1.5 flex justify-between text-xs font-bold text-brand-700"><span>Contenuto</span><span>9/10</span></div>
+                        <div class="h-2 rounded-full bg-brand-100"><div class="h-2 w-[90%] rounded-full bg-emerald-500"></div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- =========================================================
+         SOCIAL PROOF STRIP
+         ========================================================= -->
+    <section class="bg-[#FAFAFA] py-10">
+      <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <p class="reveal text-sm font-semibold text-slate-500">🇮🇹 Pensato per gli oltre 500.000 candidati ai concorsi pubblici italiani</p>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         3. SEZIONE PROBLEMA
+         ========================================================= -->
+    <section class="bg-brand-50 py-20 sm:py-28">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-3xl text-center">
+          <p class="section-eyebrow">IL PROBLEMA</p>
+          <h2 class="mt-4 text-3xl font-bold tracking-[-0.035em] text-brand-900 sm:text-4xl lg:text-5xl">Hai studiato tutto. Poi arriva l'orale.</h2>
+          <p class="mt-5 text-base leading-8 text-brand-700 sm:text-lg">La prova scritta è andata. Ma il pensiero di sederti davanti alla commissione ti blocca. Non sei solo.</p>
+        </div>
+
+        <div class="mt-14 grid gap-5 md:grid-cols-3">
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-6 shadow-card sm:p-8">
+            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 shadow-sm"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13h3l2-6 4 12 3-9 2 3h4" /></svg></div>
+            <h3 class="text-xl font-black text-brand-900">Ansia da prestazione</h3>
+            <p class="mt-3 text-sm leading-7 text-brand-700">Ti trema la voce, dimentichi cose che sapevi perfettamente. La pressione della commissione è reale.</p>
+          </article>
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-6 shadow-card sm:p-8" style="transition-delay:90ms;">
+            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 shadow-sm"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9.5 9a2.8 2.8 0 1 1 4.3 2.36c-.93.57-1.8 1.26-1.8 2.64M12 18h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg></div>
+            <h3 class="text-xl font-black text-brand-900">Paura dell'imprevisto</h3>
+            <p class="mt-3 text-sm leading-7 text-brand-700">Le domande che non ti aspetti. L'argomento che hai ripassato meno. Il 'vuoto'. E se capitasse proprio a te?</p>
+          </article>
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-6 shadow-card sm:p-8" style="transition-delay:180ms;">
+            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 text-brand-600 shadow-sm"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM5 21a7 7 0 0 1 14 0" /></svg></div>
+            <h3 class="text-xl font-black text-brand-900">Nessuno con cui esercitarsi</h3>
+            <p class="mt-3 text-sm leading-7 text-brand-700">Amici e parenti non conoscono la materia. Ti alleni da solo, davanti allo specchio.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- =========================================================
+         PRIMA / DOPO
+         ========================================================= -->
+    <section class="py-20 sm:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-3xl text-center">
+          <p class="section-eyebrow">PRIMA / DOPO</p>
+          <h2 class="mt-4 text-3xl font-bold tracking-[-0.035em] text-brand-900 sm:text-4xl lg:text-5xl">Non studi di più. Ti alleni meglio.</h2>
+          <p class="mt-5 text-base leading-8 text-brand-700 sm:text-lg">La differenza è passare dal ripasso passivo a una simulazione che ti costringe a esporre, ragionare e migliorare.</p>
+        </div>
+        <div class="mt-12 grid gap-6 lg:grid-cols-2">
+          <article class="reveal rounded-3xl border border-slate-200 bg-white p-7 shadow-card">
+            <div class="mb-6 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[.18em] text-slate-600">Prima</div>
+            <h3 class="text-2xl font-bold text-brand-900">Ripassi da solo e speri che basti.</h3>
+            <ul class="mt-6 space-y-4 text-sm leading-7 text-brand-700">
+              <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-slate-300"></span><span>Leggi appunti e manuali, ma non provi davvero l'esposizione orale.</span></li>
+              <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-slate-300"></span><span>Non sai quanto sei chiaro finché qualcuno non ti ascolta.</span></li>
+              <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-slate-300"></span><span>Le domande impreviste restano la parte che fa più paura.</span></li>
+            </ul>
+          </article>
+          <article class="reveal rounded-3xl border border-brand-200 bg-gradient-to-br from-white to-brand-50 p-7 shadow-card" style="transition-delay:120ms;">
+            <div class="mb-6 inline-flex rounded-full bg-brand-100 px-3 py-1 text-xs font-black uppercase tracking-[.18em] text-brand-700">Con ConcorsoAI</div>
+            <h3 class="text-2xl font-bold text-brand-900">Simuli, rispondi, ricevi feedback.</h3>
+            <ul class="mt-6 space-y-4 text-sm leading-7 text-brand-700">
+              <li class="flex gap-3"><span class="check-circle">✓</span><span>Ti alleni con domande generate dai materiali che carichi.</span></li>
+              <li class="flex gap-3"><span class="check-circle">✓</span><span>Pratichi l'esposizione a voce o per iscritto, con timer.</span></li>
+              <li class="flex gap-3"><span class="check-circle">✓</span><span>Capisci cosa migliorare su chiarezza, struttura e contenuto.</span></li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         4. COME FUNZIONA
+         ========================================================= -->
+    <section id="come-funziona" class="py-20 sm:py-28">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-3xl text-center">
+          <p class="section-eyebrow">COME FUNZIONA</p>
+          <h2 class="mt-4 text-3xl font-bold tracking-[-0.035em] text-brand-900 sm:text-4xl lg:text-5xl">Tre passi. Zero scuse.</h2>
+        </div>
+        <div class="mt-16 grid gap-7 lg:grid-cols-3">
+          <article class="reveal card-hover relative rounded-3xl border border-brand-200 bg-white p-7 shadow-card"><div class="step-number absolute right-6 top-6 text-5xl font-black tracking-[-0.06em] sm:text-6xl">01</div><div class="relative"><h3 class="text-2xl font-black text-brand-900">Carica il tuo bando</h3><p class="mt-4 text-sm leading-7 text-brand-700">Trascina il PDF del bando. La nostra AI lo analizza ed estrae le domande più probabili per il tuo profilo. Usiamo RAG: niente domande generiche, solo i tuoi argomenti.</p></div></article>
+          <article class="reveal card-hover relative rounded-3xl border border-brand-200 bg-white p-7 shadow-card" style="transition-delay:90ms;"><div class="step-number absolute right-6 top-6 text-5xl font-black tracking-[-0.06em] sm:text-6xl">02</div><div class="relative"><h3 class="text-2xl font-black text-brand-900">Simula l'orale</h3><p class="mt-4 text-sm leading-7 text-brand-700">Le domande arrivano come da un vero commissario. Rispondi a voce o per iscritto. Con timer, per abituarti a gestire l'ansia dei minuti contati.</p></div></article>
+          <article class="reveal card-hover relative rounded-3xl border border-brand-200 bg-white p-7 shadow-card" style="transition-delay:180ms;"><div class="step-number absolute right-6 top-6 text-5xl font-black tracking-[-0.06em] sm:text-6xl">03</div><div class="relative"><h3 class="text-2xl font-black text-brand-900">Ricevi feedback</h3><p class="mt-4 text-sm leading-7 text-brand-700">Valutazione su chiarezza, struttura e contenuto. L'AI ti dice cosa migliorare e cosa hai fatto bene. Senza giudizi, solo dati.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- =========================================================
+         5. PER CHI È
+         ========================================================= -->
+    <section class="py-20 sm:py-28">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-3xl text-center">
+          <p class="section-eyebrow">PER CHI È</p>
+          <h2 class="mt-4 text-3xl font-bold tracking-[-0.035em] text-brand-900 sm:text-4xl lg:text-5xl">Pensato per chi fa sul serio.</h2>
+          <p class="mt-5 text-base leading-8 text-brand-700 sm:text-lg">ConcorsoAI è lo strumento giusto se ti riconosci in una di queste situazioni.</p>
+        </div>
+        <div class="mt-14 grid gap-5 md:grid-cols-3">
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-7 text-center shadow-card">
+            <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-600 shadow-sm ring-1 ring-brand-200">
+              <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="m3 8.5 9-4 9 4-9 4-9-4Zm3 2.2v4.1c0 1.7 2.7 3.2 6 3.2s6-1.5 6-3.2v-4.1M21 9v6" /></svg>
+            </div>
+            <h3 class="text-xl font-black text-brand-900">Stai preparando il tuo primo concorso</h3>
+            <p class="mt-3 text-sm leading-7 text-brand-700">Hai studiato tanto ma non sai come sarà l'orale. Vuoi arrivarci preparato, non improvvisato.</p>
+          </article>
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-7 text-center shadow-card" style="transition-delay:90ms;">
+            <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-600 shadow-sm ring-1 ring-brand-200">
+              <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v1m-8 0h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Zm-2 6h16" /></svg>
+            </div>
+            <h3 class="text-xl font-black text-brand-900">Cambi carriera e ti rimetti in gioco</h3>
+            <p class="mt-3 text-sm leading-7 text-brand-700">Affronti un concorso dopo anni dall'università. Hai bisogno di rispolverare e simulare prima del giorno X.</p>
+          </article>
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-7 text-center shadow-card" style="transition-delay:180ms;">
+            <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-600 shadow-sm ring-1 ring-brand-200">
+              <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 0 1-14.6 4.55M4 12A8 8 0 0 1 18.6 7.45M18 3v4h-4M6 21v-4h4" /></svg>
+            </div>
+            <h3 class="text-xl font-black text-brand-900">Hai già fatto un orale e non è andata</h3>
+            <p class="mt-3 text-sm leading-7 text-brand-700">Sai dove hai sbagliato. Questa volta vuoi arrivare allenato, senza ansia e senza scuse.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         6. FEATURES
+         ========================================================= -->
+    <section class="bg-brand-50 py-20 sm:py-28">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-3xl text-center">
+          <p class="section-eyebrow">COSA POTRAI FARE</p>
+          <h2 class="mt-4 text-3xl font-bold tracking-[-0.035em] text-brand-900 sm:text-4xl lg:text-5xl">Più di un semplice quiz.</h2>
+          <p class="mt-5 text-base leading-8 text-brand-700 sm:text-lg">ConcorsoAI è pensato come un allenatore personale per il tuo orale.</p>
+        </div>
+        <div class="mt-14 grid gap-5 md:grid-cols-2">
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-6 shadow-card sm:p-8"><div class="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 text-brand-600"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm7 0v5h5M8.5 13.5h7M8.5 17h4" /></svg></div><h3 class="text-xl font-black text-brand-900">Domande dal tuo bando</h3><p class="mt-3 text-sm leading-7 text-brand-700">Estratte dai PDF che carichi con tecnologia RAG. Niente domande generiche prese da internet.</p></article>
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-6 shadow-card sm:p-8" style="transition-delay:80ms;"><div class="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 text-brand-600"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v5l3 2M9 2h6M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" /></svg></div><h3 class="text-xl font-black text-brand-900">Timer &amp; pressione</h3><p class="mt-3 text-sm leading-7 text-brand-700">Simula la pressione del tempo reale. Per abituarti a gestire l'ansia dei minuti contati.</p></article>
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-6 shadow-card sm:p-8" style="transition-delay:160ms;"><div class="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 text-brand-600"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19V5M4 19h17M8 16v-5M13 16V8M18 16v-8" /></svg></div><h3 class="text-xl font-black text-brand-900">Dashboard progressi</h3><p class="mt-3 text-sm leading-7 text-brand-700">Tieni traccia dei miglioramenti. Vedi dove sei forte e dove devi lavorare ancora.</p></article>
+          <article class="reveal card-hover rounded-3xl border border-brand-200 bg-white p-6 shadow-card sm:p-8" style="transition-delay:240ms;"><div class="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 text-brand-600"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="m12 3 1.85 5.15L19 10l-5.15 1.85L12 17l-1.85-5.15L5 10l5.15-1.85L12 3Z" /></svg></div><h3 class="text-xl font-black text-brand-900">Feedback sull'esposizione</h3><p class="mt-3 text-sm leading-7 text-brand-700">Rileva parole riempitive, valuta la chiarezza. Per parlare come un professionista.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         7. VIDEO DEMO
+         ========================================================= -->
+    <section id="demo" class="py-20 sm:py-28">
+      <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-3xl text-center">
+          <p class="section-eyebrow">VEDI COM'È</p>
+          <h2 class="mt-4 text-3xl font-bold tracking-[-0.035em] text-brand-900 sm:text-4xl lg:text-5xl">60 secondi per capire perché funziona.</h2>
+        </div>
+        <div class="reveal mt-12">
+          <div class="relative mx-auto aspect-video max-h-[330px] max-w-3xl overflow-hidden rounded-[2rem] border border-brand-200 bg-gradient-to-br from-white via-brand-50 to-brand-100 shadow-[0_28px_80px_rgba(15,76,129,.16)]">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(37,99,235,0.16),transparent_34%)]"></div>
+            <button type="button" class="group absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-5 rounded-3xl p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Riproduci demo video placeholder">
+              <span class="btn-primary flex h-16 w-16 items-center justify-center rounded-full sm:h-20 sm:w-20"><svg class="ml-0.5 h-6 w-6 text-white sm:h-7 sm:w-7" viewBox="0 0 20 20" fill="currentColor"><path d="M6.3 3.76A1 1 0 0 0 5 4.71v10.58a1 1 0 0 0 1.5.86l9.06-5.29a1 1 0 0 0 0-1.72L6.5 3.85a1 1 0 0 0-.2-.09Z" /></svg></span>
+              <span class="text-sm font-bold text-brand-700">Demo in arrivo · Lanciamo a settembre</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         8. PRICING
+         ========================================================= -->
+    <section id="prezzi" class="bg-brand-50 py-20 sm:py-28">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-3xl text-center"><p class="section-eyebrow">PREZZI</p><h2 class="mt-4 text-3xl font-bold tracking-[-0.035em] text-brand-900 sm:text-4xl lg:text-5xl">Semplice. Onesto. Senza sorprese.</h2></div>
+        <div class="reveal mx-auto mt-12 grid max-w-6xl gap-8 lg:grid-cols-2">
+          <article class="rounded-[2rem] border border-brand-200 bg-white p-6 shadow-card sm:p-8">
+            <span class="inline-flex rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-black tracking-[0.16em] text-brand-700">PIANO BASE</span>
+            <h3 class="mt-5 text-2xl font-black text-brand-900">ConcorsoAI Free</h3>
+            <p class="mt-2 text-sm leading-6 text-brand-700">Inizia gratuitamente. Prova il servizio e decidi.</p>
+            <div class="mt-8 overflow-visible border-y border-brand-200 px-2 py-8 text-center"><div class="flex items-baseline justify-center gap-2 leading-none"><span class="text-6xl font-black tracking-[-0.06em] text-brand-900 sm:text-7xl">€0</span><span class="text-base font-bold text-brand-600">/sempre</span></div><p class="mt-3 text-sm font-bold text-brand-600">Nessuna carta richiesta</p></div>
+            <ul class="mt-7 space-y-4 text-sm font-medium text-brand-800">
+              <li class="flex gap-3"><span class="check-circle">✓</span><span>5 simulazioni orali al mese</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>1 upload bandi PDF</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>Modalità solo scritto</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>Dashboard progressi base</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>Feedback sintetico AI</span></li>
+            </ul>
+            <a href="auth.html" class="btn-secondary mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-brand-300 bg-white px-6 py-4 text-base font-black text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Inizia gratuitamente <span aria-hidden="true" class="ml-1">→</span></a>
+          </article>
+
+          <article class="rounded-[2rem] border-2 border-brand-500 bg-gradient-to-br from-brand-50 to-white p-6 shadow-[0_28px_80px_rgba(15,76,129,.24)] sm:p-8">
+            <span class="inline-flex rounded-full border border-brand-500 bg-brand-600 px-3 py-1 text-xs font-black tracking-[0.16em] text-white">OFFERTA LANCIO</span>
+            <h3 class="mt-5 text-2xl font-black text-brand-900">ConcorsoAI Pro</h3>
+            <p class="mt-2 text-sm leading-6 text-brand-700">Tutto incluso. Per chi fa sul serio.</p>
+            <div class="mt-8 overflow-visible border-y border-brand-300 px-2 py-8 text-center"><div class="flex items-baseline justify-center gap-2 leading-none"><span class="text-6xl font-black tracking-[-0.06em] text-brand-900 sm:text-7xl">€29</span><span class="text-base font-bold text-brand-600">/mese</span></div><p class="mt-3 text-sm font-bold text-brand-600">Tutto incluso. Disdici quando vuoi.</p></div>
+            <ul class="mt-7 space-y-4 text-sm font-medium text-brand-800">
+              <li class="flex gap-3"><span class="check-circle">✓</span><span>Simulazioni orali illimitate</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>Upload bandi PDF illimitati</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>Modalità voce e scritto</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>Dashboard progressi completa</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>Feedback dettagliato AI</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>Supporto via email</span></li><li class="flex gap-3"><span class="check-circle">✓</span><span>Disdici quando vuoi</span></li>
+            </ul>
+            <a href="auth.html" class="btn-primary shine mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white">Attiva ConcorsoAI Pro <span aria-hidden="true" class="ml-1 text-white">→</span></a>
+            <p class="mt-4 text-center text-xs font-medium text-brand-600">Pagamento sicuro · Disdici quando vuoi</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         9. FAQ
+         ========================================================= -->
+    <section id="faq" class="py-16 sm:py-24">
+      <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-3xl text-center"><p class="section-eyebrow">FAQ</p><h2 class="mt-4 text-3xl font-bold tracking-[-0.035em] text-brand-900 sm:text-4xl lg:text-5xl">Domande frequenti.</h2></div>
+        <div class="reveal mt-12 space-y-3" id="faq-list">
+          <div class="faq-item rounded-2xl border border-brand-200 bg-white shadow-sm"><button class="faq-button flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-base font-black text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 sm:px-6" aria-expanded="true"><span>Funziona per qualsiasi concorso pubblico?</span><span class="faq-icon text-brand-600">−</span></button><div class="faq-panel px-6 pb-6 text-sm leading-7 text-brand-700 sm:px-6">Sì. Carica il bando in PDF e l'AI genera domande specifiche per i tuoi argomenti. Funziona per concorsi universitari, ministeriali, forze dell'ordine, scuola e molti altri.</div></div>
+          <div class="faq-item rounded-2xl border border-brand-200 bg-white shadow-sm"><button class="faq-button flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-base font-black text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 sm:px-6" aria-expanded="false"><span>L'AI è davvero realistica?</span><span class="faq-icon text-brand-600">+</span></button><div class="faq-panel hidden px-6 pb-6 text-sm leading-7 text-brand-700 sm:px-6">Usiamo voce italiana naturale e simuliamo la pressione di un commissario vero. L'AI fa domande di approfondimento, non si accontenta di risposte generiche.</div></div>
+          <div class="faq-item rounded-2xl border border-brand-200 bg-white shadow-sm"><button class="faq-button flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-base font-black text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 sm:px-6" aria-expanded="false"><span>I miei documenti sono al sicuro?</span><span class="faq-icon text-brand-600">+</span></button><div class="faq-panel hidden px-6 pb-6 text-sm leading-7 text-brand-700 sm:px-6">Sì. I PDF sono criptati e usati solo per le tue simulazioni personali. Non li condividiamo con nessuno.</div></div>
+          <div class="faq-item rounded-2xl border border-brand-200 bg-white shadow-sm"><button class="faq-button flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-base font-black text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 sm:px-6" aria-expanded="false"><span>Posso disdire quando voglio?</span><span class="faq-icon text-brand-600">+</span></button><div class="faq-panel hidden px-6 pb-6 text-sm leading-7 text-brand-700 sm:px-6">Certo. Disdici in un click dal tuo profilo, senza vincoli e senza domande.</div></div>
+          <div class="faq-item rounded-2xl border border-brand-200 bg-white shadow-sm"><button class="faq-button flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-base font-black text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 sm:px-6" aria-expanded="false"><span>Quanto dura una simulazione?</span><span class="faq-icon text-brand-600">+</span></button><div class="faq-panel hidden px-6 pb-6 text-sm leading-7 text-brand-700 sm:px-6">Scegli tu: 15, 30 o 60 minuti. Puoi anche fare simulazioni brevi mirate su singoli argomenti.</div></div>
+          <div class="faq-item rounded-2xl border border-brand-200 bg-white shadow-sm"><button class="faq-button flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-base font-black text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 sm:px-6" aria-expanded="false"><span>Devo installare qualcosa?</span><span class="faq-icon text-brand-600">+</span></button><div class="faq-panel hidden px-6 pb-6 text-sm leading-7 text-brand-700 sm:px-6">No. ConcorsoAI funziona direttamente nel browser, su computer o smartphone. Serve solo il microfono per la modalità voce.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         10. CTA FINALE
+         ========================================================= -->
+    <section class="px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+      <div class="reveal shine relative mx-auto max-w-6xl overflow-hidden rounded-[2.25rem] bg-gradient-to-br from-brand-700 via-brand-600 to-brand-500 px-6 py-16 text-center shadow-[0_34px_100px_rgba(15,76,129,.26)] sm:px-10 sm:py-20">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,.26),transparent_42%)]"></div>
+        <div class="relative">
+          <h2 class="text-3xl font-black tracking-[-0.04em] text-white sm:text-5xl lg:text-6xl">Pronto a superare l'orale?</h2>
+          <p class="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/90 sm:text-lg">Inizia oggi e allenati con un commissario AI sempre disponibile.</p>
+          <div class="mt-6 flex flex-wrap justify-center gap-2.5">
+            <span class="benefit-chip">✓ Setup in 2 minuti</span>
+            <span class="benefit-chip">✓ Disdici quando vuoi</span>
+            <span class="benefit-chip">✓ Funziona da browser</span>
+          </div>
+          <a href="#" class="mt-8 inline-flex rounded-2xl bg-white px-8 py-4 text-base font-black text-brand-600 shadow-lg shadow-brand-900/10 transition hover:scale-[1.02] hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600">
+            Crea il tuo account <span aria-hidden="true" class="ml-1 text-brand-600">→</span>
+          </a>
+          <p class="mt-4 text-xs font-bold text-white/82">Setup in 2 minuti · Nessuna carta richiesta</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================================================
+       11. FOOTER
+       ========================================================= -->
+  <footer class="border-t border-brand-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div><a href="#" class="inline-flex rounded-xl text-xl font-extrabold tracking-tight text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Concorso<span class="text-gradient">AI</span></a><p class="mt-3 text-sm text-brand-700">Allena l'orale. Supera il concorso.</p><div class="mt-5 flex gap-3"><a href="#" aria-label="Twitter/X" class="flex h-9 w-9 items-center justify-center rounded-full border border-brand-200 text-brand-600 transition hover:bg-brand-50 hover:text-brand-900"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-6.8 7.8 8 10.2h-6.3l-4.9-6.3L6.4 20H3.3l7.3-8.4L3 2h6.4l4.4 5.7L18.9 2Zm-1.1 16.2h1.7L8.5 3.7H6.7l11.1 14.5Z"/></svg></a><a href="#" aria-label="Instagram" class="flex h-9 w-9 items-center justify-center rounded-full border border-brand-200 text-brand-600 transition hover:bg-brand-50 hover:text-brand-900"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.5"/><path d="M17.5 6.5h.01"/></svg></a><a href="#" aria-label="TikTok" class="flex h-9 w-9 items-center justify-center rounded-full border border-brand-200 text-brand-600 transition hover:bg-brand-50 hover:text-brand-900"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 3c.4 2.4 1.8 3.9 4.1 4.1v3.1a8 8 0 0 1-4.1-1.2v5.9c0 3-2.4 5.4-5.4 5.4S5.8 18 5.8 15s2.4-5.4 5.4-5.4c.4 0 .8 0 1.1.1V13a2.4 2.4 0 1 0 1.2 2.1V3h3.1Z"/></svg></a></div></div>
+        <div><h3 class="text-sm font-black text-brand-900">Prodotto</h3><ul class="mt-4 space-y-3 text-sm text-brand-700"><li><a href="#come-funziona" class="footer-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Come funziona</a></li><li><a href="#prezzi" class="footer-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Prezzi</a></li><li><a href="#faq" class="footer-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">FAQ</a></li></ul></div>
+        <div><h3 class="text-sm font-black text-brand-900">Legale</h3><ul class="mt-4 space-y-3 text-sm text-brand-700"><li><a href="#" class="footer-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Termini di Servizio</a></li><li><a href="#" class="footer-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Privacy Policy</a></li><li><a href="#" class="footer-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Cookie Policy</a></li><li><a href="#" class="footer-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Contatti</a></li></ul></div>
+      </div>
+      <div class="mt-12 border-t border-brand-200 pt-6 text-sm text-brand-600">© 2025 ConcorsoAI. Tutti i diritti riservati. Fatto con ❤️ in Italia.</div>
+    </div>
+  </footer>
+
+  <!-- JavaScript: mobile menu, reveal on scroll, FAQ accordion -->
+  <script>
+    (function () {
+      const menuToggle = document.getElementById('menu-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const openIcon = document.querySelector('.menu-icon-open');
+      const closeIcon = document.querySelector('.menu-icon-close');
+
+      function setMenu(open) {
+        menuToggle.setAttribute('aria-expanded', String(open));
+        menuToggle.setAttribute('aria-label', open ? 'Chiudi menu' : 'Apri menu');
+        mobileMenu.classList.toggle('hidden', !open);
+        openIcon.classList.toggle('hidden', open);
+        closeIcon.classList.toggle('hidden', !open);
+      }
+
+      if (menuToggle) {
+        menuToggle.addEventListener('click', function () {
+          const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+          setMenu(!isOpen);
+        });
+      }
+
+      document.querySelectorAll('.mobile-link').forEach(function (link) {
+        link.addEventListener('click', function () { setMenu(false); });
+      });
+
+      const revealElements = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -48px 0px' });
+        revealElements.forEach(function (el) { observer.observe(el); });
+      } else {
+        revealElements.forEach(function (el) { el.classList.add('is-visible'); });
+      }
+
+      const faqButtons = document.querySelectorAll('.faq-button');
+      faqButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          faqButtons.forEach(function (otherButton) {
+            const item = otherButton.closest('.faq-item');
+            const panel = item.querySelector('.faq-panel');
+            const icon = item.querySelector('.faq-icon');
+            const shouldOpen = otherButton === button && otherButton.getAttribute('aria-expanded') !== 'true';
+            otherButton.setAttribute('aria-expanded', String(shouldOpen));
+            panel.classList.toggle('hidden', !shouldOpen);
+            icon.textContent = shouldOpen ? '−' : '+';
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

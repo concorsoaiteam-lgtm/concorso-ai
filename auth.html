@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accedi o registrati — ConcorsoAI</title>
+  <meta name="description" content="Accedi o crea il tuo account ConcorsoAI per iniziare ad allenarti all'orale del concorso pubblico." />
+  <meta name="theme-color" content="#F7FBFF" />
+
+  <!-- Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#F7FBFF',
+              100: '#EAF4FF',
+              200: '#D6E8FF',
+              300: '#A9CDF8',
+              400: '#5EA0E8',
+              500: '#2563EB',
+              600: '#0F4C81',
+              700: '#0B3A63',
+              800: '#0B2A4A',
+              900: '#071D33'
+            }
+          },
+          boxShadow: {
+            card: '0 24px 70px rgba(15,76,129,.12)',
+            glowBlue: '0 18px 45px rgba(37,99,235,.22)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #F7FBFF;
+      --text: #0B2A4A;
+      --muted: #4B6F8E;
+      --blue: #0F4C81;
+      --blue-2: #2563EB;
+      --line: #D6E8FF;
+      --soft: #EAF4FF;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% -8%, rgba(37,99,235,.13), transparent 34rem),
+        radial-gradient(circle at 90% 4%, rgba(94,160,232,.12), transparent 30rem),
+        linear-gradient(180deg, #F7FBFF 0%, #FFFFFF 32%, #F7FBFF 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(15,76,129,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15,76,129,.045) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle at 50% 18%, black 0%, transparent 72%);
+    }
+
+    .text-gradient {
+      color: #0F4C81;
+      background: linear-gradient(135deg, #0B2A4A 0%, #0F4C81 42%, #2563EB 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .auth-card {
+      animation: cardIn .5s ease-out both;
+      background: rgba(255,255,255,.88);
+      border: 1px solid rgba(214,232,255,.95);
+      box-shadow: 0 24px 70px rgba(15,76,129,.12);
+      backdrop-filter: blur(18px);
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(18px) scale(.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0F4C81 0%, #2563EB 100%);
+      color: #fff;
+      box-shadow: 0 16px 38px rgba(37,99,235,.22);
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease, opacity .18s ease;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: scale(1.02);
+      filter: saturate(1.06);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.08), 0 20px 54px rgba(37,99,235,.30);
+    }
+
+    .btn-google {
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
+    }
+
+    .btn-google:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: #A9CDF8;
+      box-shadow: 0 16px 42px rgba(15,76,129,.10);
+      background: #FFFFFF;
+    }
+
+    .field-input {
+      transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+    }
+
+    .field-input:focus {
+      border-color: #2563EB;
+      box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+    }
+
+    .tab-indicator {
+      transition: transform .3s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .error-box {
+      animation: errorIn .22s ease-out both;
+    }
+
+    @keyframes errorIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="font-sans antialiased selection:bg-brand-200 selection:text-brand-900">
+  <!-- =========================================================
+       PAGE WRAPPER
+       ========================================================= -->
+  <main class="flex min-h-screen flex-col px-4 py-6 sm:px-6">
+    <!-- Logo -->
+    <div class="mx-auto mb-6 mt-2 w-full max-w-[480px] text-center sm:mb-8">
+      <a href="/" class="inline-flex rounded-xl text-2xl font-extrabold tracking-tight text-brand-900 outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-50" aria-label="Torna alla landing ConcorsoAI">
+        Concorso<span class="text-gradient">AI</span>
+      </a>
+    </div>
+
+    <div class="flex flex-1 items-center justify-center">
+      <!-- =========================================================
+           AUTH CARD
+           ========================================================= -->
+      <section class="auth-card w-full max-w-[480px] rounded-[2rem] p-5 sm:p-7" aria-label="Autenticazione ConcorsoAI">
+        <!-- Tab switcher -->
+        <div class="relative grid grid-cols-2 rounded-2xl border border-brand-200 bg-brand-50 p-1" role="tablist" aria-label="Scegli modalità autenticazione">
+          <span id="tab-indicator" class="tab-indicator absolute left-1 top-1 h-[calc(100%-0.5rem)] w-[calc(50%-0.25rem)] rounded-xl bg-white shadow-sm shadow-brand-200/70"></span>
+          <button id="login-tab" type="button" class="relative z-10 rounded-xl px-4 py-2.5 text-sm font-black text-brand-900 outline-none transition focus-visible:ring-2 focus-visible:ring-brand-500" role="tab" aria-selected="true" aria-controls="login-panel">
+            Accedi
+          </button>
+          <button id="register-tab" type="button" class="relative z-10 rounded-xl px-4 py-2.5 text-sm font-black text-brand-600 outline-none transition focus-visible:ring-2 focus-visible:ring-brand-500" role="tab" aria-selected="false" aria-controls="register-panel">
+            Registrati
+          </button>
+        </div>
+
+        <!-- Error message -->
+        <div id="error-box" class="error-box mt-5 hidden rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert" aria-live="polite">
+          <div class="flex gap-3">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 4.3 2.8 17.2A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.8L13.7 4.3a2 2 0 0 0-3.4 0Z" />
+            </svg>
+            <p id="error-text" class="font-semibold leading-6"></p>
+          </div>
+        </div>
+
+        <!-- =====================================================
+             LOGIN PANEL
+             ===================================================== -->
+        <div id="login-panel" class="pt-7" role="tabpanel" aria-labelledby="login-tab">
+          <div class="text-center">
+            <h1 class="text-3xl font-bold tracking-[-0.035em] text-brand-900">Bentornato</h1>
+            <p class="mt-2 text-sm leading-6 text-brand-700">Accedi al tuo account per continuare ad allenarti.</p>
+          </div>
+
+          <button id="login-google" type="button" class="btn-google mt-7 flex w-full items-center justify-center gap-3 rounded-2xl border border-brand-200 bg-white px-4 py-3.5 text-sm font-black text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Continua con Google">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M21.805 12.23c0-.75-.067-1.47-.192-2.16H12v4.085h5.493a4.696 4.696 0 0 1-2.036 3.08v2.56h3.298c1.93-1.777 3.05-4.397 3.05-7.565Z" />
+              <path fill="#34A853" d="M12 22c2.756 0 5.067-.913 6.755-2.205l-3.298-2.56c-.914.613-2.082.975-3.457.975-2.66 0-4.914-1.796-5.718-4.21H2.875v2.642A9.996 9.996 0 0 0 12 22Z" />
+              <path fill="#FBBC05" d="M6.282 14A6.01 6.01 0 0 1 5.97 12c0-.693.112-1.365.312-2V7.358H2.875A9.996 9.996 0 0 0 2 12c0 1.613.386 3.138 1.075 4.642L6.282 14Z" />
+              <path fill="#EA4335" d="M12 5.79c1.498 0 2.844.515 3.904 1.526l2.927-2.927C17.062 2.74 14.751 2 12 2a9.996 9.996 0 0 0-9.125 5.358L6.282 10C7.086 7.586 9.34 5.79 12 5.79Z" />
+            </svg>
+            <span>Continua con Google</span>
+          </button>
+
+          <div class="my-6 flex items-center gap-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-600/70">
+            <div class="h-px flex-1 bg-brand-200"></div>
+            <span>oppure</span>
+            <div class="h-px flex-1 bg-brand-200"></div>
+          </div>
+
+          <form id="login-form" novalidate class="space-y-4">
+            <div>
+              <label for="login-email" class="mb-2 block text-sm font-black text-brand-900">Email</label>
+              <input id="login-email" name="email" type="email" autocomplete="email" placeholder="tua@email.it" required class="field-input w-full rounded-2xl border border-brand-200 bg-white px-4 py-3.5 text-sm font-semibold text-brand-900 outline-none placeholder:text-brand-600/45" />
+            </div>
+
+            <div>
+              <label for="login-password" class="mb-2 block text-sm font-black text-brand-900">Password</label>
+              <div class="relative">
+                <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="La tua password" required class="field-input w-full rounded-2xl border border-brand-200 bg-white px-4 py-3.5 pr-12 text-sm font-semibold text-brand-900 outline-none placeholder:text-brand-600/45" />
+                <button type="button" class="password-toggle absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" data-target="login-password" aria-label="Mostra password">
+                  <svg class="eye-open h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="3" /></svg>
+                  <svg class="eye-closed hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m3 3 18 18M10.6 10.6A2.9 2.9 0 0 0 12 15a3 3 0 0 0 2.7-1.7M7.5 7.8C4.3 9.5 2.5 12 2.5 12s3.5 6 9.5 6c1.5 0 2.8-.3 4-.8M19.2 15.2c1.5-1.4 2.3-3.2 2.3-3.2S18 6 12 6c-.8 0-1.6.1-2.3.3" /></svg>
+                </button>
+              </div>
+              <div class="mt-2 text-right">
+                <a href="#" class="text-xs font-bold text-brand-600 transition hover:text-brand-800 hover:underline">Password dimenticata?</a>
+              </div>
+            </div>
+
+            <button id="login-submit" type="submit" class="btn-primary flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60">
+              <span class="button-text">Accedi</span>
+            </button>
+          </form>
+
+          <p class="mt-6 text-center text-sm font-semibold text-brand-700">
+            Non hai un account?
+            <button type="button" class="switch-to-register font-black text-brand-600 hover:text-brand-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Registrati</button>
+          </p>
+        </div>
+
+        <!-- =====================================================
+             REGISTER PANEL
+             ===================================================== -->
+        <div id="register-panel" class="hidden pt-7" role="tabpanel" aria-labelledby="register-tab">
+          <div class="text-center">
+            <h1 class="text-3xl font-bold tracking-[-0.035em] text-brand-900">Crea il tuo account</h1>
+            <p class="mt-2 text-sm leading-6 text-brand-700">Inizia ad allenarti per l'orale del tuo concorso.</p>
+          </div>
+
+          <button id="register-google" type="button" class="btn-google mt-7 flex w-full items-center justify-center gap-3 rounded-2xl border border-brand-200 bg-white px-4 py-3.5 text-sm font-black text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Continua con Google">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M21.805 12.23c0-.75-.067-1.47-.192-2.16H12v4.085h5.493a4.696 4.696 0 0 1-2.036 3.08v2.56h3.298c1.93-1.777 3.05-4.397 3.05-7.565Z" />
+              <path fill="#34A853" d="M12 22c2.756 0 5.067-.913 6.755-2.205l-3.298-2.56c-.914.613-2.082.975-3.457.975-2.66 0-4.914-1.796-5.718-4.21H2.875v2.642A9.996 9.996 0 0 0 12 22Z" />
+              <path fill="#FBBC05" d="M6.282 14A6.01 6.01 0 0 1 5.97 12c0-.693.112-1.365.312-2V7.358H2.875A9.996 9.996 0 0 0 2 12c0 1.613.386 3.138 1.075 4.642L6.282 14Z" />
+              <path fill="#EA4335" d="M12 5.79c1.498 0 2.844.515 3.904 1.526l2.927-2.927C17.062 2.74 14.751 2 12 2a9.996 9.996 0 0 0-9.125 5.358L6.282 10C7.086 7.586 9.34 5.79 12 5.79Z" />
+            </svg>
+            <span>Continua con Google</span>
+          </button>
+
+          <div class="my-6 flex items-center gap-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-600/70">
+            <div class="h-px flex-1 bg-brand-200"></div>
+            <span>oppure</span>
+            <div class="h-px flex-1 bg-brand-200"></div>
+          </div>
+
+          <form id="register-form" novalidate class="space-y-4">
+            <div>
+              <label for="register-name" class="mb-2 block text-sm font-black text-brand-900">Nome completo</label>
+              <input id="register-name" name="fullName" type="text" autocomplete="name" placeholder="Mario Rossi" required minlength="2" class="field-input w-full rounded-2xl border border-brand-200 bg-white px-4 py-3.5 text-sm font-semibold text-brand-900 outline-none placeholder:text-brand-600/45" />
+            </div>
+
+            <div>
+              <label for="register-email" class="mb-2 block text-sm font-black text-brand-900">Email</label>
+              <input id="register-email" name="email" type="email" autocomplete="email" placeholder="tua@email.it" required class="field-input w-full rounded-2xl border border-brand-200 bg-white px-4 py-3.5 text-sm font-semibold text-brand-900 outline-none placeholder:text-brand-600/45" />
+            </div>
+
+            <div>
+              <label for="register-password" class="mb-2 block text-sm font-black text-brand-900">Password</label>
+              <div class="relative">
+                <input id="register-password" name="password" type="password" autocomplete="new-password" placeholder="Almeno 8 caratteri" required minlength="8" class="field-input w-full rounded-2xl border border-brand-200 bg-white px-4 py-3.5 pr-12 text-sm font-semibold text-brand-900 outline-none placeholder:text-brand-600/45" />
+                <button type="button" class="password-toggle absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" data-target="register-password" aria-label="Mostra password">
+                  <svg class="eye-open h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="3" /></svg>
+                  <svg class="eye-closed hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m3 3 18 18M10.6 10.6A2.9 2.9 0 0 0 12 15a3 3 0 0 0 2.7-1.7M7.5 7.8C4.3 9.5 2.5 12 2.5 12s3.5 6 9.5 6c1.5 0 2.8-.3 4-.8M19.2 15.2c1.5-1.4 2.3-3.2 2.3-3.2S18 6 12 6c-.8 0-1.6.1-2.3.3" /></svg>
+                </button>
+              </div>
+              <div class="mt-3" aria-live="polite">
+                <div class="h-2 overflow-hidden rounded-full bg-brand-100">
+                  <div id="password-strength-bar" class="h-full w-0 rounded-full transition-all duration-300"></div>
+                </div>
+                <p id="password-strength-text" class="mt-1.5 text-xs font-bold text-brand-600">Inserisci una password</p>
+              </div>
+            </div>
+
+            <label class="flex cursor-pointer gap-3 rounded-2xl border border-brand-200 bg-brand-50/70 p-4 text-sm leading-6 text-brand-800 transition hover:bg-brand-50">
+              <input id="terms-checkbox" type="checkbox" class="mt-1 h-4 w-4 rounded border-brand-300 text-brand-600 focus:ring-brand-500" />
+              <span>
+                Accetto i
+                <a href="#" class="font-black text-brand-600 hover:text-brand-800 hover:underline">Termini di Servizio</a>
+                e la
+                <a href="#" class="font-black text-brand-600 hover:text-brand-800 hover:underline">Privacy Policy</a>
+              </span>
+            </label>
+
+            <button id="register-submit" type="submit" disabled class="btn-primary flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50">
+              <span class="button-text">Crea account</span>
+            </button>
+          </form>
+
+          <p class="mt-6 text-center text-sm font-semibold text-brand-700">
+            Hai già un account?
+            <button type="button" class="switch-to-login font-black text-brand-600 hover:text-brand-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Accedi</button>
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Back link -->
+    <div class="mx-auto mt-6 w-full max-w-[480px] pb-2 text-center">
+      <a href="index.html" class="inline-flex rounded-lg px-3 py-2 text-sm font-bold text-brand-600 transition hover:text-brand-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+        ← Torna alla landing
+      </a>
+    </div>
+  </main>
+
+  <!-- =========================================================
+       JAVASCRIPT: SUPABASE AUTH + UI LOGIC
+       ========================================================= -->
+  <script>
+    // Supabase configuration
+    const SUPABASE_URL = ['https://','xhifnparcouxsypkjcmn','.supabase.co'].join('');
+    const SUPABASE_KEY = ['sb_publishable_','dVYESGcHAV13d5aI1uC7wQ','_pQ0r1qT2'].join('');
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const DASHBOARD_URL = '/dashboard.html';
+
+    const state = {
+      mode: 'login',
+      loading: false,
+      errorTimeout: null
+    };
+
+    const els = {
+      loginTab: document.getElementById('login-tab'),
+      registerTab: document.getElementById('register-tab'),
+      tabIndicator: document.getElementById('tab-indicator'),
+      loginPanel: document.getElementById('login-panel'),
+      registerPanel: document.getElementById('register-panel'),
+      errorBox: document.getElementById('error-box'),
+      errorText: document.getElementById('error-text'),
+      loginForm: document.getElementById('login-form'),
+      registerForm: document.getElementById('register-form'),
+      loginSubmit: document.getElementById('login-submit'),
+      registerSubmit: document.getElementById('register-submit'),
+      loginGoogle: document.getElementById('login-google'),
+      registerGoogle: document.getElementById('register-google'),
+      termsCheckbox: document.getElementById('terms-checkbox'),
+      registerPassword: document.getElementById('register-password'),
+      strengthBar: document.getElementById('password-strength-bar'),
+      strengthText: document.getElementById('password-strength-text')
+    };
+
+    function setMode(mode) {
+      state.mode = mode;
+      clearError();
+
+      const isLogin = mode === 'login';
+      els.loginPanel.classList.toggle('hidden', !isLogin);
+      els.registerPanel.classList.toggle('hidden', isLogin);
+      els.tabIndicator.style.transform = isLogin ? 'translateX(0)' : 'translateX(100%)';
+
+      els.loginTab.setAttribute('aria-selected', String(isLogin));
+      els.registerTab.setAttribute('aria-selected', String(!isLogin));
+      els.loginTab.classList.toggle('text-brand-900', isLogin);
+      els.loginTab.classList.toggle('text-brand-600', !isLogin);
+      els.registerTab.classList.toggle('text-brand-900', !isLogin);
+      els.registerTab.classList.toggle('text-brand-600', isLogin);
+    }
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+    }
+
+    function translateAuthError(message) {
+      const msg = String(message || '').toLowerCase();
+      if (msg.includes('invalid login credentials')) return 'Email o password non corretti';
+      if (msg.includes('email not confirmed')) return 'Conferma la tua email prima di accedere';
+      if (msg.includes('user already registered') || msg.includes('already registered')) return 'Un account con questa email esiste già';
+      if (msg.includes('password should be at least') || msg.includes('password')) return 'Password troppo corta (minimo 8 caratteri)';
+      if (msg.includes('failed to fetch') || msg.includes('network')) return 'Problema di connessione. Riprova tra qualche secondo.';
+      return 'Si è verificato un errore. Riprova tra qualche secondo.';
+    }
+
+    function showError(message) {
+      window.clearTimeout(state.errorTimeout);
+      els.errorText.textContent = message;
+      els.errorBox.classList.remove('hidden');
+      state.errorTimeout = window.setTimeout(clearError, 5000);
+    }
+
+    function clearError() {
+      window.clearTimeout(state.errorTimeout);
+      els.errorBox.classList.add('hidden');
+      els.errorText.textContent = '';
+    }
+
+    function spinnerSvg() {
+      return '<svg class="spinner h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4Z"></path></svg>';
+    }
+
+    function setButtonLoading(button, loading, loadingText, defaultText) {
+      button.disabled = loading;
+      button.innerHTML = loading ? spinnerSvg() + '<span>' + loadingText + '</span>' : '<span class="button-text">' + defaultText + '</span>';
+    }
+
+    function setAllInteractiveDisabled(disabled) {
+      els.loginGoogle.disabled = disabled;
+      els.registerGoogle.disabled = disabled;
+      els.loginTab.disabled = disabled;
+      els.registerTab.disabled = disabled;
+      document.querySelectorAll('.password-toggle').forEach(btn => btn.disabled = disabled);
+    }
+
+    function passwordStrength(password) {
+      const hasUppercase = /[A-ZÀ-Ý]/.test(password);
+      const hasNumberOrSymbol = /[0-9\W_]/.test(password);
+
+      if (!password) {
+        return { level: 'empty', label: 'Inserisci una password', width: '0%', color: 'bg-transparent', textColor: 'text-brand-600' };
+      }
+
+      if (password.length < 6) {
+        return { level: 'weak', label: 'Debole', width: '33%', color: 'bg-red-500', textColor: 'text-red-600' };
+      }
+
+      if (password.length >= 10 && hasUppercase && hasNumberOrSymbol) {
+        return { level: 'strong', label: 'Forte', width: '100%', color: 'bg-emerald-500', textColor: 'text-emerald-700' };
+      }
+
+      if (password.length >= 6 && password.length <= 9 && hasUppercase) {
+        return { level: 'medium', label: 'Media', width: '66%', color: 'bg-amber-500', textColor: 'text-amber-700' };
+      }
+
+      return { level: 'weak', label: 'Debole', width: '33%', color: 'bg-red-500', textColor: 'text-red-600' };
+    }
+
+    function updatePasswordStrength() {
+      const result = passwordStrength(els.registerPassword.value);
+      els.strengthBar.className = 'h-full rounded-full transition-all duration-300 ' + result.color;
+      els.strengthBar.style.width = result.width;
+      els.strengthText.className = 'mt-1.5 text-xs font-bold ' + result.textColor;
+      els.strengthText.textContent = result.label;
+    }
+
+    async function handleGoogleAuth() {
+      clearError();
+      try {
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + DASHBOARD_URL
+          }
+        });
+        if (error) showError(translateAuthError(error.message));
+      } catch (error) {
+        showError(translateAuthError(error.message));
+      }
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      clearError();
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (!isValidEmail(email)) return showError('Inserisci un indirizzo email valido');
+      if (!password) return showError('Inserisci la password');
+
+      state.loading = true;
+      setAllInteractiveDisabled(true);
+      setButtonLoading(els.loginSubmit, true, 'Accesso in corso...', 'Accedi');
+
+      try {
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          showError(translateAuthError(error.message));
+          return;
+        }
+        window.location.href = DASHBOARD_URL;
+      } catch (error) {
+        showError(translateAuthError(error.message));
+      } finally {
+        state.loading = false;
+        setAllInteractiveDisabled(false);
+        setButtonLoading(els.loginSubmit, false, 'Accesso in corso...', 'Accedi');
+      }
+    }
+
+    async function handleRegister(event) {
+      event.preventDefault();
+      clearError();
+
+      const fullName = document.getElementById('register-name').value.trim();
+      const email = document.getElementById('register-email').value.trim();
+      const password = els.registerPassword.value;
+      const acceptedTerms = els.termsCheckbox.checked;
+
+      if (fullName.length < 2) return showError('Inserisci il tuo nome completo');
+      if (!isValidEmail(email)) return showError('Inserisci un indirizzo email valido');
+      if (password.length < 8) return showError('Password troppo corta (minimo 8 caratteri)');
+      if (!acceptedTerms) return showError('Accetta i Termini di Servizio e la Privacy Policy');
+
+      state.loading = true;
+      setAllInteractiveDisabled(true);
+      setButtonLoading(els.registerSubmit, true, 'Creazione account...', 'Crea account');
+
+      try {
+        const { error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName }
+          }
+        });
+        if (error) {
+          showError(translateAuthError(error.message));
+          return;
+        }
+        window.location.href = DASHBOARD_URL;
+      } catch (error) {
+        showError(translateAuthError(error.message));
+      } finally {
+        state.loading = false;
+        setAllInteractiveDisabled(false);
+        els.registerSubmit.disabled = !els.termsCheckbox.checked;
+        setButtonLoading(els.registerSubmit, false, 'Creazione account...', 'Crea account');
+        els.registerSubmit.disabled = !els.termsCheckbox.checked;
+      }
+    }
+
+    // Event listeners: tabs
+    els.loginTab.addEventListener('click', () => setMode('login'));
+    els.registerTab.addEventListener('click', () => setMode('register'));
+    document.querySelectorAll('.switch-to-register').forEach(btn => btn.addEventListener('click', () => setMode('register')));
+    document.querySelectorAll('.switch-to-login').forEach(btn => btn.addEventListener('click', () => setMode('login')));
+
+    // Event listeners: forms and OAuth
+    els.loginForm.addEventListener('submit', handleLogin);
+    els.registerForm.addEventListener('submit', handleRegister);
+    els.loginGoogle.addEventListener('click', handleGoogleAuth);
+    els.registerGoogle.addEventListener('click', handleGoogleAuth);
+
+    // Event listeners: password visibility
+    document.querySelectorAll('.password-toggle').forEach(button => {
+      button.addEventListener('click', () => {
+        const input = document.getElementById(button.dataset.target);
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        button.setAttribute('aria-label', isPassword ? 'Nascondi password' : 'Mostra password');
+        button.querySelector('.eye-open').classList.toggle('hidden', isPassword);
+        button.querySelector('.eye-closed').classList.toggle('hidden', !isPassword);
+      });
+    });
+
+    // Event listeners: validation UI
+    els.termsCheckbox.addEventListener('change', () => {
+      if (!state.loading) els.registerSubmit.disabled = !els.termsCheckbox.checked;
+    });
+
+    els.registerPassword.addEventListener('input', updatePasswordStrength);
+
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', clearError);
+    });
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a12cad0bbdc7ee59',t:'MTc4MjY0OTU0NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

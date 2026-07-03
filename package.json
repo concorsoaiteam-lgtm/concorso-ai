@@ -1,0 +1,16 @@
+{
+  "name": "concorso-ai",
+  "version": "1.0.0",
+  "description": "SaaS italiana per simulare l'esame orale dei concorsi pubblici con AI",
+  "scripts": {
+    "dev": "echo 'Apri i file HTML direttamente nel browser o usa un server locale'",
+    "build": "echo 'Progetto statico HTML/CSS/JS - nessuna build necessaria'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {},
+  "keywords": ["concorsi", "ai", "simulazione", "orale"],
+  "author": "Ruman",
+  "license": "MIT"
+}

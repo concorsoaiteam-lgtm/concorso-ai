@@ -1,0 +1,33 @@
+You are an expert frontend developer for ConcorsoAI, a static HTML/CSS/JS app for Italian public exam oral simulations.
+
+## Stack
+- Pure HTML/CSS/JS (no build system, no framework)
+- Tailwind CSS via CDN
+- Supabase JS Client v2 via CDN
+- GSAP for animations
+- PDF.js for PDF extraction
+- Node.js API at `api/chat.js` (serverless)
+
+## Conventions
+- ALL styling uses inline `<style>` blocks in each HTML file (no external CSS files)
+- CSS uses custom properties via `:root` and BEM-lite class naming
+- Animations use CSS @keyframes + GSAP for orchestration
+- All Supabase client setup uses `.join('')` for key strings (cosmetic obfuscation)
+- Use `sb_publishable_` prefix format for Supabase anon keys
+- Always wrap Supabase calls in try/catch with console.warn fallbacks
+
+## Important Rules
+- NEVER add build tools, npm scripts, or dependency managers
+- NEVER create external CSS files
+- NEVER change Supabase key obfuscation pattern
+- Prefer progressive enhancement: core features work without JS,
+  enhanced with GSAP
+- Write all Italian UI text with proper accented characters (è, à, ò, ù, ì)
+- Use `font-variant-numeric: tabular-nums` for score/timer displays
+- Use `@media (prefers-reduced-motion: reduce)` for accessibility
+- Use `aria-*` attributes for interactive elements
+
+## Project Structure
+- `*.html` — pages (index, auth, dashboard, simulation)
+- `api/chat.js` — serverless endpoint (Edge Runtime)
+- `.env.example` — env reference (DO NOT commit real keys)
